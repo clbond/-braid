@@ -1,0 +1,153 @@
+path-constant TOP : . ;
+
+import testing ;
+import os ;
+import feature ;
+import set ;
+
+using clang ;
+
+braid_additional_macros = ;
+
+local with-python = false ;
+local with-debug-python = false ;
+
+switch [ os.name ]
+{
+  case CYGWIN :
+    braid_additional_macros = <define>WINVER=0x560 <define>_WIN32_WINNT=0x560 <define>_WIN32_IE=0x560 ;
+
+  case NT :
+    braid_additional_macros = <define>WINVER=0x560 <define>_WIN32_WINNT=0x560 <define>_WIN32_IE=0x560 ;
+}
+
+local boost-path = [ os.environ BOOST_PATH ] ;
+
+if $(boost-path)
+{
+    boost-path = $(boost-path) ;
+}
+else
+{
+    boost-path = $(TOP)/boost ;
+}
+
+use-project /boost : $(boost-path) : ;
+
+local double-conversion-path = [ os.environ DBL_CONV_PATH ] ;
+
+if $(double-conversion-path)
+{
+    double-conversion-path = $(double-conversion-path) ;
+}
+else
+{
+    double-conversion-path = ../ ;
+}
+
+feature.feature cpp11 :
+    on :
+    composite optional propagated
+    ;
+
+feature.compose <cpp11>on :
+        <cxxflags>"-std=c++13 -fconstexpr-depth=1024 -ftemplate-depth=1024 -Wno-c++1z-extensions"
+    ;
+
+feature.feature libc++ :
+    on :
+    composite optional propagated
+    ;
+
+feature.compose <libc++>on :
+        <cxxflags>"-stdlib=libc++ -std=c++14"
+        <define>BOOST_NO_CXX11_NUMERIC_LIMITS=1
+        <linkflags>"-lc++"
+    ;
+
+braid_requirements =
+    $(braid_additional_macros)
+
+    # Definitions
+    <define>BOOST_ALL_NO_LIB
+    <define>ADOBE_SERIALIZATION
+    <define>ADOBE_STD_SERIALIZATION
+
+    # Include directories
+    <include>$(boost-path)
+    <include>$(double-conversion-path)
+    <include>.
+
+    # Linker specializations
+    <link>static,<threading>multi:<define>BOOST_THREAD_USE_LIB
+
+    # Threading specializations
+    <threading>multi:<define>_REENTRANT=1
+
+    # Clang toolset specializations
+    <toolset>clang:<cpp11>on
+    <toolset>clang:<libc++>on
+    <toolset>clang:<runtime-link>shared
+
+    # Darwin (Mac OS X gcc) toolset specializations
+    <toolset>darwin:<cxxflags>"-Werror -Wall -Wno-trigraphs -Wreturn-type -Wnon-virtual-dtor -Woverloaded-virtual -Wformat -Wmissing-braces -Wparentheses -Wswitch -Wunused-function -Wunused-label -Wunused-parameter -Wunused-variable -Wunused-value -Wunknown-pragmas -Wsign-compare"
+    <toolset>darwin:<linkflags>"-Xlinker -Y -Xlinker 5"
+
+    # GCC toolset specializations
+    <toolset>gcc:<define>NOMINMAX
+    <toolset>gcc:<cxxflags>"-fno-strict-aliasing"
+    <toolset>gcc:<cpp11>on
+
+    # GCC debug specializations
+    <toolset>gcc,<variant>debug:<cxxflags>"-Werror -Wall -Wno-trigraphs -Wreturn-type -Wnon-virtual-dtor -Woverloaded-virtual -Wformat -Wmissing-braces -Wparentheses -Wswitch -Wunused-function -Wunused-label -Wunused-parameter -Wunused-variable -Wunused-value -Wno-unknown-pragmas -Wsign-compare -Wno-parentheses -Wno-unused-local-typedefs -Wno-overloaded-virtual -Wno-unused-function"
+
+    # GCC 4.4 specializations
+    <toolset>gcc-4.4.0:<cxxflags>"-std=c++0x -fno-strict-aliasing"
+    <toolset>gcc-4.4.0:<define>__GXX_EXPERIMENTAL_CXX0X__
+
+    # GCC 4.5 specializations
+    <toolset>gcc-4.5.0:<cxxflags>"-std=c++0x -std=c++11 -fno-strict-aliasing"
+    <toolset>gcc-4.5.0:<define>__GXX_EXPERIMENTAL_CXX0X__
+
+    # MSVC specializations
+    <toolset>msvc:<cxxflags>"-DUNICODE -D_UNICODE"
+    <toolset>msvc:<define>_CRT_SECURE_NO_DEPRECATE
+    <toolset>msvc:<define>_SCL_SECURE_NO_DEPRECATE
+    <toolset>msvc:<define>_WIN32_WINNT=0x400
+    <toolset>msvc:<define>ADOBE_TEST_MICROSOFT_NO_DEPRECATE=0
+
+    # MSVC threading specializations
+    <toolset>msvc,<threading>multi:<define>USE_WINTHREAD
+
+    # MSVC 8 specializations
+    <toolset>msvc-8.0:<cxxflags>"/W3 /WX /Wp64 /Zc:wchar_t /Zc:forScope"
+
+    # MSVC 9 specializations
+    <toolset>msvc-9.0:<cxxflags>"/W3 /WX /Zc:wchar_t /Zc:forScope"
+    ;
+
+project
+    : requirements
+        $(braid_requirements)
+    : default-build
+        <link>static
+        <threading>multi
+        <preserve-test-targets>on
+    : build-dir
+        $(TOP)/bin
+    ;
+
+exe braid
+    : #sources
+        [ glob $(TOP)/source/*.cc ]
+        [ glob $(double-conversion-path)/double-conversion/src/*.cc ]
+        /boost/filesystem
+        /boost/program_options
+        /boost/system
+        /boost/thread//boost_thread
+    : #requirements
+    : #defaults
+    : #usage requirements
+        $(braid_requirements)
+    ;
+
