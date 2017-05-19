@@ -27,21 +27,21 @@ shared_ptr<const options> braid::parse_cli(po::command_line_parser& parser) {
   po::store(parser.options(desc).positional(positional).run(), vm);
   po::notify(vm);
 
-  if (vm.count("source-file") == 0) {
-    throw exceptions::command_line_error("No source files were specified");
-  }
-
   if (vm.count("help")) {
     stringstream ss;
     ss << desc;
     throw exceptions::command_line_error(ss.str());
   }
 
+  if (vm.count("source-file") == 0) {
+    throw exceptions::command_line_error("No source files were specified");
+  }
+
   auto opts = shared_ptr<options>(new options());
 
   opts->debug = vm.count("debug") > 0;
 
-  auto source_files = vm["source-file"].as<const vector<string>>();
+  auto source_files = vm["source-file"].as<vector<string>>();
 
   opts->entries = transform::strings_to_paths(source_files);
 

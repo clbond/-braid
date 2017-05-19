@@ -6,7 +6,7 @@
 
 #include <boost/program_options.hpp>
 
-#include "stream.h"
+#include "io/stream.h"
 
 namespace braid {
   struct options;

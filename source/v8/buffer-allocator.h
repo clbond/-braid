@@ -8,9 +8,7 @@
 namespace braid::v8 {
   struct buffer_allocator : public ::v8::ArrayBuffer::Allocator {
     virtual void* Allocate(std::size_t length) {
-      void* block = std::malloc(length);
-      std::memset(block, 0, length);
-      return block;
+      return std::malloc(length);
     }
 
     virtual void* AllocateUninitialized(std::size_t length) {

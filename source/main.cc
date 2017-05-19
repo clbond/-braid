@@ -3,7 +3,8 @@
 #include <v8.h>
 
 #include "options.h"
-#include "platform.h"
+
+#include "v8/platform.h"
 
 using namespace v8;
 using namespace std;
@@ -22,7 +23,7 @@ int main(const int argc, const char** argv) {
     braid::v8::platform platform;
 
     for (const boost::filesystem::path& path : options->entries) {
-      cout << "Source file: "<< path << endl;
+      cout << "Source file: " << path << endl;
     }
   }
   catch (const exception& e) {

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace braid {
   struct unconstructable {
     unconstructable() = delete;

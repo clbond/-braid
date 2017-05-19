@@ -12,7 +12,6 @@
 #include <boost/locale.hpp>
 
 #include "transform.h"
-#include "unconstructable.h"
 
 namespace braid {
   using path_vector = std::vector<boost::filesystem::path>;
