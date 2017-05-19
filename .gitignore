@@ -1,2 +1,3 @@
 bin
 boost/bin.*
+boost/project-config.jam.*

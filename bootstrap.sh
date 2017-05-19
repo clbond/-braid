@@ -8,4 +8,4 @@ fi;
 
 cd boost;
 
-exec ./bootstrap.sh --with-toolset=clang --with-libraries=exception,system,iostreams,thread,date_time,program_options,filesystem --without-libraries=python;
+exec ./bootstrap.sh --with-toolset=clang --with-libraries=asio,exception,system,iostreams,thread,date_time,program_options,filesystem --without-libraries=python;
