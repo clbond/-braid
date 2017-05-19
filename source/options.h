@@ -4,12 +4,20 @@
 #include <vector>
 #include <string>
 
+#include <boost/program_options.hpp>
+
+#include "stream.h"
+
 namespace braid {
-  struct Options {
-    static std::shared_ptr<const Options> parse(const int argc, const char** argv);
+  struct options;
 
-    bool debug;
+  std::shared_ptr<const options> parse_cli(boost::program_options::command_line_parser& parser);
 
-    std::vector<std::string> entries;
+  struct options {
+    // Paths to entrypoint JavaScript code which will be executed in parallel
+    braid::path_vector entries;
+
+    // Are we running in debug mode?
+    bool debug = false;
   };
 }

@@ -2,8 +2,6 @@
 
 #include <v8.h>
 
-#include "execution-context.h"
-#include "io.h"
 #include "options.h"
 #include "platform.h"
 
@@ -12,29 +10,25 @@ using namespace std;
 using namespace braid;
 
 int main(const int argc, const char** argv) {
-  auto options = Options::parse(argc, argv);
-
-  if (options.get() == nullptr) {
-    return 1;
-  }
-
-  V8::InitializeICU(argv[0]);
-  V8::InitializeExternalStartupData(argv[0]);
-
-  braid::Platform platform;
+  shared_ptr<const options> options;
   try {
-    auto context = platform.createExecutionContext();
+    boost::program_options::command_line_parser parser(argc, argv);
 
-    for (const string& file : options->entries) {
-      cout << "load file: "<< file<< endl;
-      context->run(File::read(file));
+    options = braid::parse_cli(parser);
+
+    V8::InitializeICU(argv[0]);
+    V8::InitializeExternalStartupData(argv[0]);
+
+    braid::v8::platform platform;
+
+    for (const boost::filesystem::path& path : options->entries) {
+      cout << "Source file: "<< path << endl;
     }
-
-    context->join();
   }
-  catch (const exception& ex) {
-    cerr << "Failed to execute application: " << ex.what() << endl;
+  catch (const exception& e) {
+    cerr << e.what() << endl;
     return 1;
   }
+
   return 0;
 }
