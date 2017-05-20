@@ -1,42 +1,55 @@
 #pragma once
 
 #include <algorithm>
+#include <future>
+#include <functional>
 #include <memory>
+#include <thread>
+#include <set>
 
-#include <boost/thread/thread.hpp>
+#include <boost/bind.hpp>
 
-#include "thread.h"
+#include <boost/asio/io_service.hpp>
 
 namespace braid {
   class thread_pool {
     public:
       template<typename CharT = char, typename Traits = std::char_traits<CharT>>
-      std::shared_ptr<braid::thread> create(const std::basic_string<CharT, Traits>& code) {
-        std::shared_ptr<braid::thread> thread(new braid::thread());
+      std::shared_ptr<std::thread> create(const std::basic_string<CharT, Traits>& code) {
+        std::shared_ptr<std::thread> thread(new std::thread(boost::bind(&boost::asio::io_service::run, service_)));
 
-        thread_pointers_.push_back(thread);
-
-        boost::asio::io_service& service = thread->service();
-
-        threads_.create_thread(boost::bind(&boost::asio::io_service::run, &service));
+        threads_.insert(thread);
 
         return thread;
       }
 
+      thread_pool()
+        : service_(new boost::asio::io_service())
+      {}
+
+      template<typename MessageT, typename ResultT>
+      std::future<ResultT> task(const std::packaged_task<ResultT>&& task) {
+        service_->post(std::bind(&std::packaged_task<ResultT>::operator(), task));
+
+        return task.get_future();
+      }
+
+      void stop() {
+        service_->stop();
+      }
+
       void join() {
-        std::for_each(thread_pointers_.begin(), thread_pointers_.end(),
-          [](const std::shared_ptr<braid::thread> thread) {
-            thread->service().stop();
+        std::for_each(threads_.begin(), threads_.end(),
+          [](std::shared_ptr<std::thread> thread) {
+            thread->join();
           });
 
-        threads_.join_all();
-
-        thread_pointers_.clear();
+        threads_.clear();
       }
 
     private:
-      std::vector<std::shared_ptr<braid::thread>> thread_pointers_;
+      std::shared_ptr<boost::asio::io_service> service_;
 
-      boost::thread_group threads_;
+      std::set<std::shared_ptr<std::thread>> threads_;
   };
 }

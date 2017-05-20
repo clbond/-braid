@@ -5,6 +5,7 @@
 #include <boost/program_options.hpp>
 
 #include "exception.h"
+#include "io.h"
 #include "options.h"
 
 using namespace braid;
@@ -12,7 +13,8 @@ using namespace std;
 
 namespace po = boost::program_options;
 
-shared_ptr<const options> braid::parse_cli(po::command_line_parser& parser) {
+shared_ptr<const options>
+braid::parse_command_line_arguments(po::command_line_parser& parser) {
   po::options_description desc("Options");
 
   desc.add_options()
@@ -41,9 +43,7 @@ shared_ptr<const options> braid::parse_cli(po::command_line_parser& parser) {
 
   opts->debug = vm.count("debug") > 0;
 
-  auto source_files = vm["source-file"].as<vector<string>>();
-
-  opts->entries = transform::strings_to_paths(source_files);
+  opts->entries = braid::path::vector(vm["source-file"].as<vector<string>>());
 
   return const_pointer_cast<const options>(opts);
 }

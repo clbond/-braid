@@ -1,3 +1,8 @@
 bin
+
 boost/bin.*
+
 boost/project-config.jam.*
+
+bootstrap.log
+bootstrap.log.*
