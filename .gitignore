@@ -6,3 +6,5 @@ boost/project-config.jam.*
 
 bootstrap.log
 bootstrap.log.*
+
+.vscode

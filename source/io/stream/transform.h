@@ -14,5 +14,4 @@ namespace braid::stream::transform {
 
     return ss.str();
   }
-
 }

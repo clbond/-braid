@@ -10,10 +10,10 @@
 
 namespace braid {
   struct options {
-    // Paths to entrypoint JavaScript code which will be executed in parallel
     std::vector<boost::filesystem::path> entries;
 
-    // Are we running in debug mode?
+    std::size_t workers;
+
     bool debug = false;
   };
 

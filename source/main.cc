@@ -3,6 +3,7 @@
 
 #include "io.h"
 #include "options.h"
+#include "script.h"
 #include "thread.h"
 
 using namespace std;
@@ -15,15 +16,31 @@ int main(const int argc, const char** argv) {
 
     options = braid::parse_command_line_arguments(parser);
 
-    thread_pool threads;
+    shared_ptr<thread_pool> threads(new thread_pool());
+
+    threads->start_workers(options->workers);
+
+    vector<future<void>> futures;
 
     for (const boost::filesystem::path& path : options->entries) {
-      const std::string content = stream::file::read(path);
+      const string content = stream::file::read(path);
 
-      threads.create(content);
+      shared_ptr<const script::runnable> script = script::parse(content);
+
+      futures.push_back(
+        threads->task(
+          std::packaged_task<void()>([&]() {
+            script->run(threads);
+          })));
     }
 
-    threads.join();
+    for_each(futures.begin(), futures.end(), [](future<void>& f) {
+      f.wait();
+    });
+
+    threads->stop();
+
+    threads->join();
   }
   catch (const exception& e) {
     cerr << e.what() << endl;
