@@ -17,12 +17,28 @@ namespace braid::script {
         : thread_pool_(thread_pool), fn_(fn)
       {}
 
-      std::shared_ptr<controlled_thread<ReturnT>> run() const {
-        return std::shared_ptr<controlled_thread<ReturnT>>(new controlled_thread<ReturnT>(fn_));
+      void run(std::promise<ReturnT>& promise) {
+        const auto init = !thread_;
+        if (init) {
+          thread_ = thread_pool_->start_controlled();
+        }
+        thread_->task(promise, fn_);
+        if (init) {
+          thread_->start();
+        }
+      }
+
+      virtual ~execution() {
+        if (thread_) {
+          thread_->join();
+          thread_.reset();
+        }
       }
 
     private:
       std::shared_ptr<braid::thread::pool> thread_pool_;
+
+      std::shared_ptr<controlled_thread> thread_;
 
       std::function<ReturnT()> fn_;
   };

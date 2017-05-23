@@ -8,3 +8,6 @@ bootstrap.log
 bootstrap.log.*
 
 .vscode
+
+*~
+*.swp

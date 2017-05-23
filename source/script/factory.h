@@ -22,7 +22,7 @@ namespace braid::script {
       }
 
       template<typename T = void, typename CharT = char, typename Traits = std::char_traits<CharT>>
-      std::shared_ptr<execution<T>> from_string(const std::basic_string<CharT, Traits>& content) {
+      std::shared_ptr<execution<T>> from_string(const std::basic_string<CharT, Traits> content) {
         return from_function<T>(
           [=]() {
             std::cerr << "Parse script: " << content << std::endl;

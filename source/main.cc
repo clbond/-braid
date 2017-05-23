@@ -20,26 +20,25 @@ int main(const int argc, const char** argv) {
 
     threads->start_workers(options->workers);
 
-    vector<shared_future<void>> futures;
+    vector<shared_ptr<promise<void>>> promises;
 
     script::execution_factory factory(threads);
 
     for (const boost::filesystem::path& path : options->entries) {
       const string content = stream::file::read(path);
 
-      shared_ptr<const script::execution<void>> execution = factory.from_string(content);
+      shared_ptr<script::execution<void>> execution = factory.from_string(content);
 
-      futures.push_back(threads->task<void>(
-        [=]() {
-          execution->run();
-        }));
+      shared_ptr<promise<void>> promise(new std::promise<void>());
+
+      promises.push_back(promise);
+
+      execution->run(*promise.get());
     }
 
-    for_each(futures.begin(), futures.end(), [](shared_future<void>& f) {
-      f.wait();
-    });
-
-    threads->stop();
+    for (auto&& promise : promises) {
+      promise->get_future().wait();
+    }
 
     threads->join();
   }
