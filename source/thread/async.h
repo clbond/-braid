@@ -7,7 +7,7 @@
 
 namespace braid::thread {
   template<typename T>
-  void post_and_wait(std::shared_ptr<boost::asio::io_service> service, std::promise<T>& promise, std::function<std::shared_future<T>()> fn) {
+  void async_execute(std::shared_ptr<boost::asio::io_service> service, std::promise<T>& promise, std::function<std::shared_future<T>()> fn) {
     service->post(
       [=, &promise]() -> void {
         try {
@@ -26,7 +26,7 @@ namespace braid::thread {
   }
 
   template<typename T>
-  void post_and_wait(std::shared_ptr<boost::asio::io_service> service, std::promise<T>& promise, std::function<T()> fn) {
+  void async_execute(std::shared_ptr<boost::asio::io_service> service, std::promise<T>& promise, std::function<T()> fn) {
     service->post(
       [=, &promise]() -> void {
         try {
@@ -39,14 +39,14 @@ namespace braid::thread {
   }
 
   template<>
-  void post_and_wait(std::shared_ptr<boost::asio::io_service> service, std::promise<void>& promise, std::function<void()> fn) {
+  void async_execute(std::shared_ptr<boost::asio::io_service> service, std::promise<void>& promise, std::function<void()> fn) {
     service->post(
       [=, &promise]() -> void {
         try {
           fn();
           promise.set_value();
         }
-        catch (const std::exception& ex) {
+        catch (const std::exception&) {
           promise.set_exception(std::current_exception());
         }
       });

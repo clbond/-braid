@@ -10,40 +10,39 @@ using namespace std;
 using namespace braid;
 
 int main(const int argc, const char** argv) {
-  shared_ptr<const options> options;
-  try {
-    boost::program_options::command_line_parser parser(argc, argv);
+  boost::program_options::command_line_parser parser(argc, argv);
 
-    options = braid::parse_command_line_arguments(parser);
+  try {
+    auto options = braid::parse_command_line_arguments(parser);
 
     shared_ptr<braid::thread::pool> threads(new braid::thread::pool());
 
-    threads->start_workers(options->workers);
+    vector<shared_ptr<braid::script::executable_code<>>> code;
 
-    vector<shared_ptr<promise<void>>> promises;
-
-    script::execution_factory factory(threads);
+    script::executable_code_factory factory;
 
     for (const boost::filesystem::path& path : options->entries) {
       const string content = stream::file::read(path);
 
-      shared_ptr<script::execution<void>> execution = factory.from_string(content);
+      auto c = factory.from_string(content);
 
-      shared_ptr<promise<void>> promise(new std::promise<void>());
+      c->operator()(threads);
 
-      promises.push_back(promise);
-
-      execution->run(*promise.get());
+      code.push_back(c);
     }
 
-    for (auto&& promise : promises) {
-      promise->get_future().wait();
+    threads->start_workers(options->workers);
+
+    for (auto& executable: code) {
+      executable->get_future().wait();
     }
+
+    threads->stop();
 
     threads->join();
   }
   catch (const exception& e) {
-    cerr << e.what() << endl;
+    cerr << "Failure: " << e.what() << endl;
 
     return 1;
   }

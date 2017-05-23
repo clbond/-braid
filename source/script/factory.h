@@ -1,38 +1,44 @@
 #pragma once
 
 #include <iostream>
+#include <future>
 #include <memory>
 
 #include <boost/noncopyable.hpp>
 
-#include "execution.h"
-
 #include "../thread.h"
 
 namespace braid::script {
-  class execution_factory : private boost::noncopyable {
+  template<typename CharT = char, typename Traits = std::char_traits<CharT>>
+  class executable_code : public std::unary_function<std::shared_ptr<braid::thread::pool>, void> {
     public:
-      execution_factory(std::shared_ptr<braid::thread::pool> thread_pool)
-        : thread_pool_(thread_pool)
+      executable_code(const std::basic_string<CharT, Traits>& code)
+        : code_(code)
       {}
 
-      template<typename T = void>
-      std::shared_ptr<execution<T>> from_function(std::function<T()> function) {
-        return std::shared_ptr<execution<T>>(new execution<T>(thread_pool_, function));
+      void operator()(std::shared_ptr<braid::thread::pool> pool) {
+        std::function<void()> fn([&]() {
+          std::cout << "Executing: " << code_ << std::endl;
+        });
+
+        pool->task(promise_, fn);
       }
 
-      template<typename T = void, typename CharT = char, typename Traits = std::char_traits<CharT>>
-      std::shared_ptr<execution<T>> from_string(const std::basic_string<CharT, Traits> content) {
-        return from_function<T>(
-          [=]() {
-            std::cerr << "Parse script: " << content << std::endl;
-
-            // TODO(cbond): Execute script
-            return T();
-          });
+      std::shared_future<void> get_future() {
+        return promise_.get_future();
       }
 
     private:
-      std::shared_ptr<braid::thread::pool> thread_pool_;
+      const std::basic_string<CharT, Traits> code_;
+
+      std::promise<void> promise_;
+  };
+
+  class executable_code_factory : private boost::noncopyable {
+    public:
+      template<typename CharT = char, typename Traits = std::char_traits<CharT>>
+      std::shared_ptr<executable_code<CharT, Traits>> from_string(const std::basic_string<CharT, Traits> content) {
+        return std::shared_ptr<executable_code<CharT, Traits>>(new executable_code<CharT, Traits>(content));
+      }
   };
 }
