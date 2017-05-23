@@ -16,25 +16,26 @@ int main(const int argc, const char** argv) {
 
     options = braid::parse_command_line_arguments(parser);
 
-    shared_ptr<thread_pool> threads(new thread_pool());
+    shared_ptr<braid::thread::pool> threads(new braid::thread::pool());
 
     threads->start_workers(options->workers);
 
-    vector<future<void>> futures;
+    vector<shared_future<void>> futures;
+
+    script::execution_factory factory(threads);
 
     for (const boost::filesystem::path& path : options->entries) {
       const string content = stream::file::read(path);
 
-      shared_ptr<const script::runnable> script = script::parse(content);
+      shared_ptr<const script::execution<void>> execution = factory.from_string(content);
 
-      futures.push_back(
-        threads->task(
-          std::packaged_task<void()>([&]() {
-            script->run(threads);
-          })));
+      futures.push_back(threads->task<void>(
+        [=]() {
+          execution->run();
+        }));
     }
 
-    for_each(futures.begin(), futures.end(), [](future<void>& f) {
+    for_each(futures.begin(), futures.end(), [](shared_future<void>& f) {
       f.wait();
     });
 

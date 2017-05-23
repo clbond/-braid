@@ -8,33 +8,35 @@
 #include <vector>
 
 #include <boost/bind.hpp>
-
+#include <boost/noncopyable.hpp>
 #include <boost/asio/io_service.hpp>
 
-namespace braid {
-  class thread_pool {
+#include "post-wait.h"
+
+namespace braid::thread {
+  class pool : private boost::noncopyable {
     public:
-      thread_pool()
+      pool()
         : service_(new boost::asio::io_service())
       {}
 
-      virtual ~thread_pool() {
+      virtual ~pool() {
         join();
       }
 
-      void start_workers(std::size_t workers) {
+      std::vector<std::shared_ptr<std::thread>> start_workers(std::size_t workers) {
+        std::vector<std::shared_ptr<std::thread>> v;
+
         while (workers-- > 0) {
-          create();
+          v.push_back(create());
         }
+
+        return v;
       }
 
       template<typename ResultT>
-      std::future<ResultT> task(std::packaged_task<ResultT()>&& task) {
-        service_->post([&]() {
-          task();
-        });
-
-        return task.get_future();
+      std::shared_future<ResultT> task(std::function<ResultT()> task) {
+        return post_and_wait(service_, task);
       }
 
       void stop() {
@@ -51,7 +53,6 @@ namespace braid {
       }
 
     protected:
-      template<typename CharT = char, typename Traits = std::char_traits<CharT>>
       std::shared_ptr<std::thread> create() {
         std::shared_ptr<std::thread> thread(new std::thread(boost::bind(&boost::asio::io_service::run, service_)));
 
