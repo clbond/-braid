@@ -4,8 +4,6 @@
 #include <boost/filesystem/path.hpp>
 
 namespace braid::path {
-  using path_vector = std::vector<boost::filesystem::path>;
-
   template<typename CharT = char, typename Traits = std::char_traits<CharT>>
   inline const std::vector<boost::filesystem::path> vector(const std::vector<std::basic_string<CharT, Traits>>& paths) {
     std::vector<boost::filesystem::path> v;

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <vector>
 
@@ -21,7 +22,7 @@ braid::parse_command_line_arguments(po::command_line_parser& parser) {
       ("help", "produce description of available options")
       ("source-file", po::value<vector<string>>(), "JavaScript source files")
       ("debug", po::value<bool>()->default_value(false), "enable application debugging")
-      ("workers", po::value<std::size_t>()->default_value(8), "number of thread pool workers to create")
+      ("workers", po::value<size_t>()->default_value(8), "number of thread pool workers to create")
       ;
 
   po::positional_options_description positional;
@@ -41,11 +42,11 @@ braid::parse_command_line_arguments(po::command_line_parser& parser) {
     throw exceptions::command_line_error("No source files were specified");
   }
 
-  auto result = shared_ptr<options>(new options());
+  shared_ptr<options> values(new options(vm["workers"].as<size_t>(), vm.count("debug") > 0));
 
-  result->debug = vm.count("debug") > 0;
-  result->workers = vm["workers"].as<std::size_t>();
-  result->entries = braid::path::vector(vm["source-file"].as<vector<string>>());
+  auto sources = braid::path::vector(vm["source-file"].as<vector<string>>());
 
-  return const_pointer_cast<const options>(result);
+  std::copy(sources.begin(), sources.end(), back_inserter(values->entries()));
+
+  return values;
 }

@@ -1,5 +1,8 @@
 #include <iostream>
 #include <functional>
+#include <utility>
+
+#include <boost/thread/futures/wait_for_all.hpp>
 
 #include "io.h"
 #include "options.h"
@@ -15,31 +18,28 @@ int main(const int argc, const char** argv) {
   try {
     auto options = braid::parse_command_line_arguments(parser);
 
-    shared_ptr<braid::thread::pool> threads(new braid::thread::pool());
+    shared_ptr<braid::thread::dispatcher> dispatcher(new braid::thread::dispatcher());
 
-    vector<shared_ptr<braid::script::executable_code<>>> code;
+    vector<std::shared_future<void>> futures;
 
-    script::executable_code_factory factory;
-
-    for (const boost::filesystem::path& path : options->entries) {
+    for (const boost::filesystem::path& path : options->entries()) {
       const string content = stream::file::read(path);
 
-      auto c = factory.from_string(content);
+      std::function<void()> fn = [=]() {
+        std::cout << "Parse: " << content << std::endl;
+      };
 
-      c->operator()(threads);
+      std::shared_future<void> future = dispatcher->dispatch(fn);
 
-      code.push_back(c);
+      futures.push_back(future);
     }
 
-    threads->start_workers(options->workers);
+    dispatcher->start_workers(options->workers());
 
-    for (auto& executable: code) {
-      executable->get_future().wait();
-    }
+    boost::wait_for_all(futures.begin(), futures.end());
 
-    threads->stop();
-
-    threads->join();
+    dispatcher->stop();
+    dispatcher->join();
   }
   catch (const exception& e) {
     cerr << "Failure: " << e.what() << endl;
