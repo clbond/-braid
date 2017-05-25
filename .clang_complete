@@ -1,1 +1,1 @@
--Wno-pragma-once-outside-header
+-Wno-pragma-once-outside-header -framework JavaScriptCore

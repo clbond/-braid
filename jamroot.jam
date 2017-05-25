@@ -52,6 +52,15 @@ feature.compose <debug>on :
     <cxxflags>"-O0 -ggdb"
     ;
 
+feature.feature jscore :
+    on :
+    composite optional propagated
+    ;
+
+feature.compose <jscore>on :
+    <cxxflags>"-framework JavaScriptCore"
+    ;
+
 feature.feature libc++ :
     on :
     composite optional propagated
@@ -83,6 +92,7 @@ braid_requirements =
     <toolset>clang:<cpp1z>on
     <toolset>clang:<debug>on
     <toolset>clang:<libc++>on
+    <toolset>clang:<jscore>on
     <toolset>clang:<runtime-link>shared
 
     # Darwin (Mac OS X gcc) toolset specializations
@@ -93,6 +103,7 @@ braid_requirements =
     <toolset>gcc:<define>NOMINMAX
     <toolset>gcc:<cxxflags>"-fno-strict-aliasing -pthread"
     <toolset>gcc:<cpp1z>on
+    <toolset>gcc:<jscore>on
 
     # GCC debug specializations
     <toolset>gcc,<variant>debug:<cxxflags>"-Werror -Wall -Wno-trigraphs -Wreturn-type -Wnon-virtual-dtor -Woverloaded-virtual -Wformat -Wmissing-braces -Wparentheses -Wswitch -Wunused-function -Wunused-label -Wunused-parameter -Wunused-variable -Wunused-value -Wno-unknown-pragmas -Wsign-compare -Wno-parentheses -Wno-unused-local-typedefs -Wno-overloaded-virtual -Wno-unused-function"

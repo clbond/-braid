@@ -6,8 +6,8 @@
 
 #include "io.h"
 #include "options.h"
-#include "script.h"
 #include "thread.h"
+#include "vm.h"
 
 using namespace std;
 using namespace braid;
@@ -22,11 +22,17 @@ int main(const int argc, const char** argv) {
 
     vector<std::shared_future<void>> futures;
 
-    for (const boost::filesystem::path& path : options->entries()) {
-      const string content = stream::file::read(path);
+    shared_ptr<vm::machine> virtual_machine(new vm::machine());
 
-      std::function<void()> fn = [=]() {
-        std::cout << "Parse: " << content << std::endl;
+    for (const boost::filesystem::path& path : options->entries()) {
+      function<void()> fn = [=]() {
+        const auto content = stream::file::read(path);
+
+        auto compilation_result = virtual_machine->compile(content);
+
+        auto execution_result = virtual_machine->execute(compilation_result);
+
+        std::cout << "Script: " << content << std::endl;
       };
 
       std::shared_future<void> future = dispatcher->dispatch(fn);
