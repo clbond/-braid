@@ -58,7 +58,8 @@ feature.feature jscore :
     ;
 
 feature.compose <jscore>on :
-    <cxxflags>"-framework JavaScriptCore"
+    <cxxflags>"-IJavaScriptCore"
+    <ldflags>"-lJavaScriptCore"
     ;
 
 feature.feature libc++ :
