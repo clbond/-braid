@@ -1,7 +1,0 @@
-# These are the layout test expectations for Apple's iOS simulator port of WebKit (both WebKit1 and WebKit2).
-#
-# See http://trac.webkit.org/wiki/TestExpectations for more information on this file.
-#
-
-fast/multicol/flexbox-rows.html [ Skip ]
-workers/wasm-mem-post-message.html [ Failure ]

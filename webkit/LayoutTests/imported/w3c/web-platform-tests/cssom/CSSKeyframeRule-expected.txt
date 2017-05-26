@@ -1,3 +1,0 @@
-
-PASS CSSKeyframeRule: style property 
-

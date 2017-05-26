@@ -14,11 +14,18 @@ if ! clang in [ feature.values <toolset> ]
 
 project : default-build <toolset>clang ;
 
+# Python configuration
+import python ;
+if ! [ python.configured ]
+{
+    using python : 2.7 : /usr/local/Cellar/python/2.7.13/Frameworks/Python.framework/Versions/2.7 ;
+}
+
 # List of --with-<library> and --without-<library>
 # options. If left empty, all libraries will be built.
 # Options specified on the command line completely
 # override this variable.
-libraries =  --with-exception --with-system --with-iostreams --with-thread --with-date_time --with-program_options --with-filesystem ;
+libraries =  ;
 
 # These settings are equivivalent to corresponding command-line
 # options.

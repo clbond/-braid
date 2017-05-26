@@ -1,4 +1,4 @@
 -Wno-pragma-once-outside-header
 -Iboost
--IJavaScriptCore
+-framework JavaScriptCore
 -I/usr/local/include

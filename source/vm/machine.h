@@ -2,6 +2,8 @@
 
 #include <future>
 
+#include <JavaScriptCore/JSContext.h>
+
 namespace braid::vm {
   struct script;
 

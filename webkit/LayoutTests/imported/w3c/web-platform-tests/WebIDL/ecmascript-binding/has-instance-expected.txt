@@ -1,3 +1,0 @@
-
-PASS Manually-constructed prototype chains are correctly handled by instanceof 
-

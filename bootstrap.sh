@@ -6,15 +6,11 @@ then
   exit 1;
 fi;
 
-pushd boost;
+cd boost;
 
-./bootstrap.sh --with-toolset=clang --with-libraries=exception,system,iostreams,thread,date_time,program_options,filesystem \
-  || die 'boost bootstrap failed';
+./bootstrap.sh \
+  --with-toolset=clang
+  --with-libraries=exception,system,iostreams,thread,date_time,program_options,filesystem \
+|| die 'boost bootstrap failed';
 
-popd;
-
-pushd webkit;
-
-cmake -DPORT=JSCOnly . -Wno-dev || die 'webkit cmake failed';
-
-exec make;
+exec ./b2;
