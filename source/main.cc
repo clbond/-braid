@@ -26,13 +26,15 @@ int main(const int argc, const char** argv) {
 
     for (const boost::filesystem::path& path : options->entries()) {
       function<void()> fn = [=]() {
-        const auto content = stream::file::read(path);
+        const auto content = stream::transform::js_string(stream::file::read(path));
 
-        auto compilation_result = virtual_machine->compile(content);
+        auto context = virtual_machine->context();
 
-        auto execution_result = virtual_machine->execute(compilation_result);
+        auto global = JSContextGetGlobalObject(context);
 
-        std::cout << "Script: " << content << std::endl;
+        auto result = JSEvaluateScript(context, content, global, nullptr, 0, nullptr);
+
+        std::cout << "Script: " << result << std::endl;
       };
 
       std::shared_future<void> future = dispatcher->dispatch(fn);

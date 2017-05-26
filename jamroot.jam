@@ -58,7 +58,7 @@ feature.feature jscore :
     ;
 
 feature.compose <jscore>on :
-    <cxxflags>"-framework JavaScriptCore"
+    <cxxflags>"-framework JavaScriptCore -DJSC_OBJC_API_ENABLED=0"
     <linkflags>"-framework JavaScriptCore"
     ;
 

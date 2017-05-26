@@ -1,7 +1,7 @@
 bin
 
 boost/bin.*
-
+boost/stage
 boost/project-config.jam.*
 
 bootstrap.log
@@ -16,3 +16,4 @@ bootstrap.log.*
 **/*.o
 **/*.a
 **/*.dylib
+

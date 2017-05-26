@@ -1,20 +1,22 @@
 #pragma once
 
-#include <future>
-
+#include <JavaScriptCore/JSBase.h>
 #include <JavaScriptCore/JSContext.h>
 
+#include <future>
+
 namespace braid::vm {
-  struct script;
+  class machine {
+    public:
+      machine()
+        : root_(JSContextGroupCreate())
+      {}
 
-  struct machine {
-    template<typename CharT = char, typename Traits = std::char_traits<CharT>>
-    std::shared_ptr<script> compile(const std::basic_string<CharT, Traits>& content) {
-      return std::shared_ptr<script>();
-    }
+      JSGlobalContextRef context() {
+        return JSGlobalContextCreateInGroup(root_, nullptr);
+      }
 
-    std::shared_future<void> execute(std::shared_ptr<script> script) {
-      return std::shared_future<void>();
-    }
+    private:
+      JSContextGroupRef root_;
   };
 }
