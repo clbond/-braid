@@ -59,7 +59,7 @@ feature.feature jscore :
 
 feature.compose <jscore>on :
     <cxxflags>"-IJavaScriptCore"
-    <ldflags>"-lJavaScriptCore"
+    <linkflags>"-framework JavaScriptCore -F ./webkit/lib -rpath @executable_path/"
     ;
 
 feature.feature libc++ :

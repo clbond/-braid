@@ -18,7 +18,7 @@ project : default-build <toolset>clang ;
 # options. If left empty, all libraries will be built.
 # Options specified on the command line completely
 # override this variable.
-libraries =  --with-asio --with-exception --with-system --with-iostreams --with-thread --with-date_time --with-program_options --with-filesystem --without-python ;
+libraries =  --with-exception --with-system --with-iostreams --with-thread --with-date_time --with-program_options --with-filesystem ;
 
 # These settings are equivivalent to corresponding command-line
 # options.

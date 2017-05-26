@@ -11,3 +11,8 @@ bootstrap.log.*
 
 *~
 *.swp
+
+**/*.log
+**/*.o
+**/*.a
+**/*.dylib
