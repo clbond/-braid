@@ -2,44 +2,52 @@
 #include <functional>
 #include <utility>
 
+#include <boost/bind.hpp>
 #include <boost/thread/futures/wait_for_all.hpp>
 
-#include "io.h"
-#include "options.h"
-#include "thread.h"
-#include "vm.h"
+#include <v8.h>
+#include <v8-platform.h>
+
+#include <libplatform/libplatform.h>
+
+#include "io.hpp"
+#include "options.hpp"
+#include "thread.hpp"
+#include "vm.hpp"
 
 using namespace std;
 using namespace braid;
+using namespace v8;
 
 int main(const int argc, const char** argv) {
   boost::program_options::command_line_parser parser(argc, argv);
 
+  exception_ptr recorded_exception;
+
   try {
     auto options = braid::parse_command_line_arguments(parser);
 
-    shared_ptr<braid::thread::dispatcher> dispatcher(new braid::thread::dispatcher());
+    V8::InitializeICU();
+    V8::InitializeExternalStartupData(argv[0]);
+    V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
+    V8::Initialize();
 
-    vector<std::shared_future<void>> futures;
+    auto dispatcher = make_shared<braid::thread::dispatcher>();
 
-    shared_ptr<vm::machine> virtual_machine(new vm::machine());
+    vector<std::shared_future<v8::Local<v8::Value>>> futures;
+
+    auto context = make_shared<vm::execution_context>();
 
     for (const boost::filesystem::path& path : options->entries()) {
-      function<void()> fn = [=]() {
-        const auto content = stream::transform::js_string(stream::file::read(path));
+      const auto content = stream::file::read(path);
 
-        auto context = virtual_machine->context();
+      std::function<v8::Local<v8::Value>()> fn(
+        [=]() {
+          cout << "Execute: " << content << endl;
+          return context->execute(content);
+        });
 
-        auto global = JSContextGetGlobalObject(context);
-
-        auto result = JSEvaluateScript(context, content, global, nullptr, 0, nullptr);
-
-        std::cout << "Script: " << result << std::endl;
-      };
-
-      std::shared_future<void> future = dispatcher->dispatch(fn);
-
-      futures.push_back(future);
+      futures.push_back(dispatcher->dispatch<v8::Local<v8::Value>>(std::move(fn)));
     }
 
     dispatcher->start_workers(options->workers());
@@ -50,9 +58,20 @@ int main(const int argc, const char** argv) {
     dispatcher->join();
   }
   catch (const exception& e) {
-    cerr << "Failure: " << e.what() << endl;
+    recorded_exception = std::current_exception();
+  }
 
-    return 1;
+  V8::Dispose();
+
+  if (recorded_exception) {
+    try {
+      std::rethrow_exception(recorded_exception);
+    }
+    catch (const exception& e) {
+      cerr << e.what() << endl;
+
+      return 1; // failure due to uncaught exception
+    }
   }
 
   return 0;

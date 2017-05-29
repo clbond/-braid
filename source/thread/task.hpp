@@ -5,7 +5,7 @@
 
 #include <boost/asio/io_service.hpp>
 
-#include "types.h"
+#include "types.hpp"
 
 namespace braid::thread {
   template<typename T>
@@ -16,6 +16,17 @@ namespace braid::thread {
   template<>
   void set_promise_from_function(std::shared_ptr<std::promise<void>> promise, std::function<void()> fn) {
     fn();
+    promise->set_value();
+  }
+
+  template<typename T>
+  void set_promise_from_function(std::shared_ptr<std::promise<T>> promise, std::function<std::shared_future<T>()> fn) {
+    promise->set_value(fn.get());
+  }
+
+  template<>
+  void set_promise_from_function(std::shared_ptr<std::promise<void>> promise, std::function<std::shared_future<void>()> fn) {
+    fn().wait();
     promise->set_value();
   }
 

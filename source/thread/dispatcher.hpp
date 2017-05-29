@@ -12,7 +12,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio/io_service.hpp>
 
-#include "task.h"
+#include "task.hpp"
 
 namespace braid::thread {
   class dispatcher {
@@ -31,6 +31,18 @@ namespace braid::thread {
             new std::thread(boost::bind(&service::run, service_))));
         }
         return threads_;
+      }
+
+      template<typename T>
+      std::shared_future<T> dispatch(std::function<std::shared_future<T>()> fn) {
+        std::shared_ptr<std::promise<T>> promise(new std::promise<T>());
+
+        service_->dispatch(task_with_promise<T>(*service_, promise,
+          [=]() {
+            return fn().get();
+          }));
+
+        return promise->get_future();
       }
 
       template<typename T>
@@ -64,4 +76,5 @@ namespace braid::thread {
 
       std::vector<std::shared_ptr<std::thread>> threads_;
   };
+
 }

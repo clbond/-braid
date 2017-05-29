@@ -5,9 +5,9 @@
 
 #include <boost/program_options.hpp>
 
-#include "exception.h"
-#include "io.h"
-#include "options.h"
+#include "exception.hpp"
+#include "io.hpp"
+#include "options.hpp"
 
 using namespace braid;
 using namespace std;
