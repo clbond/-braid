@@ -1,6 +1,5 @@
 #include <v8.h>
 
-#include "buffer_allocator.hpp"
 #include "execution_context.hpp"
 #include "from_disposable.hpp"
 #include "transform.hpp"
@@ -9,35 +8,35 @@ using namespace braid;
 using namespace braid::vm;
 using namespace std;
 
-static v8::Isolate* newIsolate() {
+static shared_ptr<v8::Isolate> newIsolate() {
   v8::Isolate::CreateParams params;
-  //params.array_buffer_allocator = new buffer_allocator();
+  params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
 
-  return v8::Isolate::New(params);
+  return shared_from_disposable(v8::Isolate::New(params));
 }
 
 execution_context::execution_context()
   : isolation(newIsolate())
 {}
 
-v8::Isolate* execution_context::isolate() const {
-  return isolation;
-}
+v8::Local<v8::Value> execution_context::execute(const string& js) {
+  auto isolate = isolation.get();
 
-v8::Local<v8::Value> execution_context::execute(const v8::Local<v8::String> js) {
-  v8::Isolate::Scope isolation_scope(isolation);
+  v8::Isolate::Scope isolation_scope(isolate);
 
-  v8::HandleScope scope(isolation);
+  v8::HandleScope scope(isolate);
 
-  auto context = v8::Context::New(isolation, NULL, v8::ObjectTemplate::New(isolation), js);
+  auto context = v8::Context::New(isolate, NULL, v8::ObjectTemplate::New(isolate));
 
-  v8::HandleScope handle_scope(isolation);
+  v8::HandleScope handle_scope(isolate);
 
-  v8::Persistent<v8::Context> persist(isolation, context);
+  v8::Persistent<v8::Context> persist(isolate, context);
 
   v8::Context::Scope context_scope(context);
 
-  auto script = v8::Script::Compile(context, js).ToLocalChecked();
+  v8::Local<v8::String> source = transform(isolate, js);
+
+  auto script = v8::Script::Compile(context, source).ToLocalChecked();
 
   cout << "Received script" << &script << endl;
 

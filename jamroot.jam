@@ -74,7 +74,7 @@ braid_requirements =
     <include>.
     <include>v8/include
 
-    <library-path>"v8/out/x64.debug"
+    <library-path>v8/out/x64.debug
 
     # Linker specializations
     <link>static,<threading>multi:<define>BOOST_THREAD_USE_LIB
@@ -158,9 +158,7 @@ exe braid
 
 lib v8 : : <file>v8/out/x64.debug/libv8_base.a <link>static ;
 lib v8_base : : <file>v8/out/x64.debug/libv8_libbase.a <link>static ;
-#lib v8_base : : <name>v8_libbase <link>shared ;
 lib v8_libplatform : : <file>v8/out/x64.debug/libv8_libplatform.a <link>static ;
-#lib v8_libplatform : : <name>v8_libplatform <link>shared ;
 lib v8_libsampler : : <file>v8/out/x64.debug/libv8_libsampler.a <link>static ;
 lib v8_external_snapshot : : <file>v8/out/x64.debug/libv8_external_snapshot.a <link>static ;
 lib icuuc : : <file>v8/out/x64.debug/libicuuc.a <link>static ;

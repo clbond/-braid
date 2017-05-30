@@ -27,15 +27,15 @@ class runner {
 
     std::function<v8::Local<v8::Value>()> fn() const {
       return [=]() {
-        cout << "SON I BE EXECUTING: " << content << " ON " << context.get() << endl;
+        cout << "EXECUTE: " << content << " ON " << context.get() << endl;
 
         auto result = context->execute(content);
 
-        cout << "SON TEH EXECUTE IS TEH DONE" << endl;
-        //delete this;
-
         v8::String::Utf8Value utf(result);
-        cout << "SON TEH RESULT" << *utf << endl;
+
+        cout << "EXECUTE RESULT:" << *utf << endl;
+
+        delete this;
 
         return result;
       };
