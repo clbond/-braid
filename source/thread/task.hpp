@@ -1,6 +1,7 @@
 #pragma once
 
 #include <future>
+#include <iostream>
 #include <type_traits>
 
 #include <boost/asio/io_service.hpp>
@@ -26,7 +27,7 @@ namespace braid::thread {
 
   template<>
   void set_promise_from_function(std::shared_ptr<std::promise<void>> promise, std::function<std::shared_future<void>()> fn) {
-    fn().wait();
+    fn().get();
     promise->set_value();
   }
 
@@ -45,7 +46,7 @@ namespace braid::thread {
         try {
           set_promise_from_function(promise_, fn_);
         }
-        catch (const std::exception&) {
+        catch (const std::exception& ex) {
           promise_->set_exception(std::current_exception());
         }
       }

@@ -34,4 +34,9 @@ namespace braid::vm {
   inline v8::Local<v8::Value> transform(v8::Isolate* isolate, const int number) {
     return v8::Number::New(isolate, number);
   }
+
+  inline std::string to_string(v8::Local<v8::Value> local) {
+    v8::String::Utf8Value utf(local);
+    return *utf;
+  }
 }

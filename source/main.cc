@@ -1,5 +1,6 @@
 #include <iostream>
 #include <functional>
+#include <future>
 #include <utility>
 
 #include <boost/bind.hpp>
@@ -19,38 +20,6 @@ using namespace std;
 using namespace braid;
 using namespace v8;
 
-class runner {
-  public:
-    runner(shared_ptr<vm::execution_context> c, const string code)
-      : context(c), content(code)
-    {}
-
-    std::function<v8::Local<v8::Value>()> fn() const {
-      return [=]() {
-        cout << "EXECUTE: " << content << " ON " << context.get() << endl;
-
-        auto result = context->execute(content);
-
-        v8::String::Utf8Value utf(result);
-
-        cout << "EXECUTE RESULT:" << *utf << endl;
-
-        delete this;
-
-        return result;
-      };
-    }
-
-    v8::Local<v8::Value> operator()() {
-      return context->execute(content);
-    }
-
-  private:
-    shared_ptr<vm::execution_context> context;
-
-    const string content;
-};
-
 int main(int argc, char** argv) {
   boost::program_options::command_line_parser parser(argc, argv);
 
@@ -67,32 +36,36 @@ int main(int argc, char** argv) {
 
     auto dispatcher = make_shared<braid::thread::dispatcher>();
 
-    vector<std::shared_future<v8::Local<v8::Value>>> futures;
+    vector<shared_future<void>> futures;
+
+    vector<shared_ptr<promise<void>>> promises;
 
     for (const boost::filesystem::path& path : options->entries()) {
-      auto context = make_shared<vm::execution_context>();
+      const auto content = stream::file::read(path);
 
-      runner* task = new runner(context, stream::file::read(path));
+      auto promise = make_shared<std::promise<void>>();
 
-      futures.push_back(dispatcher->dispatch(task->fn()));
+      promises.push_back(promise);
+
+      futures.push_back(dispatcher->dispatch(promise, std::bind(vm::execute_in_isolation, content)));
     }
 
     dispatcher->start_workers(options->workers());
 
-    boost::wait_for_all(futures.begin(), futures.end());
+    for_each(futures.begin(), futures.end(), bind(&shared_future<void>::get, placeholders::_1));
 
     dispatcher->stop();
     dispatcher->join();
   }
   catch (const exception& e) {
-    recorded_exception = std::current_exception();
+    recorded_exception = current_exception();
   }
 
   V8::Dispose();
 
   if (recorded_exception) {
     try {
-      std::rethrow_exception(recorded_exception);
+      rethrow_exception(recorded_exception);
     }
     catch (const exception& e) {
       cerr << e.what() << endl;
