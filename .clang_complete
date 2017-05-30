@@ -1,5 +1,6 @@
 -Wno-pragma-once-outside-header
 -Iboost
+-Iv8/include
 -Isource
 -I/usr/local/include
 -std=c++1z

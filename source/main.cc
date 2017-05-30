@@ -19,7 +19,39 @@ using namespace std;
 using namespace braid;
 using namespace v8;
 
-int main(const int argc, const char** argv) {
+class runner {
+  public:
+    runner(shared_ptr<vm::execution_context> c, const string code)
+      : context(c), content(code)
+    {}
+
+    std::function<v8::Local<v8::Value>()> fn() const {
+      return [=]() {
+        cout << "SON I BE EXECUTING: " << content << " ON " << context.get() << endl;
+
+        auto result = context->execute(content);
+
+        cout << "SON TEH EXECUTE IS TEH DONE" << endl;
+        //delete this;
+
+        v8::String::Utf8Value utf(result);
+        cout << "SON TEH RESULT" << *utf << endl;
+
+        return result;
+      };
+    }
+
+    v8::Local<v8::Value> operator()() {
+      return context->execute(content);
+    }
+
+  private:
+    shared_ptr<vm::execution_context> context;
+
+    const string content;
+};
+
+int main(int argc, char** argv) {
   boost::program_options::command_line_parser parser(argc, argv);
 
   exception_ptr recorded_exception;
@@ -28,6 +60,7 @@ int main(const int argc, const char** argv) {
     auto options = braid::parse_command_line_arguments(parser);
 
     V8::InitializeICU();
+    V8::SetFlagsFromCommandLine(&argc, argv, true);
     V8::InitializeExternalStartupData(argv[0]);
     V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
     V8::Initialize();
@@ -36,18 +69,12 @@ int main(const int argc, const char** argv) {
 
     vector<std::shared_future<v8::Local<v8::Value>>> futures;
 
-    auto context = make_shared<vm::execution_context>();
-
     for (const boost::filesystem::path& path : options->entries()) {
-      const auto content = stream::file::read(path);
+      auto context = make_shared<vm::execution_context>();
 
-      std::function<v8::Local<v8::Value>()> fn(
-        [=]() {
-          cout << "Execute: " << content << endl;
-          return context->execute(content);
-        });
+      runner* task = new runner(context, stream::file::read(path));
 
-      futures.push_back(dispatcher->dispatch<v8::Local<v8::Value>>(std::move(fn)));
+      futures.push_back(dispatcher->dispatch(task->fn()));
     }
 
     dispatcher->start_workers(options->workers());
