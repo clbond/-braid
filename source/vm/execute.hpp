@@ -11,41 +11,39 @@
 
 namespace braid::vm {
 
-static inline void conditional_throw(v8::TryCatch& tryCatch, const std::string& msg) {
-  if (tryCatch.HasCaught()) {
-    std::stringstream ss;
-    ss << msg << ": " << to_string(tryCatch.Message()->Get());
-
-    throw std::runtime_error(ss.str());
-  }
+static inline void throwFrom(v8::TryCatch& tryCatch) {
+  throw std::runtime_error(toString(tryCatch.Message()->Get()));
 }
 
-static v8::Local<v8::Value> execute_in_isolation(const std::string& js) {
+static v8::Local<v8::Value> executeInIsolation(const std::string& js) {
   v8::Isolate::CreateParams params;
   params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
 
   auto isolate = v8::Isolate::New(params);
 
-  v8::Isolate::Scope isolation_scope(isolate);
+  v8::Isolate::Scope isolationScope(isolate);
 
   v8::HandleScope scope(isolate);
 
   auto context = v8::Context::New(isolate);
 
-  v8::Context::Scope context_scope(context);
+  v8::Context::Scope contextScope(context);
 
-  v8::TryCatch tc;
+  v8::TryCatch tryCatch;
 
-  auto script = v8::Script::Compile(context, transform(isolate, js));
+  auto script = v8::Script::Compile(context, local(js));
 
-  conditional_throw(tc, "Script compilation failed");
+  if (tryCatch.HasCaught()) {
+    throwFrom(tryCatch);
+  }
 
-  auto result = script.ToLocalChecked()->Run();
+  v8::Local<v8::Value> result = script.ToLocalChecked()->Run();
 
-  conditional_throw(tc, "Script execution failed");
+  if (tryCatch.HasCaught()) {
+    throwFrom(tryCatch);
+  }
 
   return result;
 }
-
 
 } // namespace braid::vm

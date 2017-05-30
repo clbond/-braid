@@ -28,7 +28,7 @@ inline std::basic_string<CharT, Traits> read(const boost::filesystem::path& path
 
   conditional_failure(buf.fail());
 
-  return boost::locale::conv::from_utf<CharT>(transform::string(buf));
+  return boost::locale::conv::from_utf<CharT>(streamToString(buf));
 }
 
 template<>
@@ -37,7 +37,7 @@ inline std::basic_string<char, std::char_traits<char>> read<char, std::char_trai
 
   conditional_failure(path, buf.fail());
 
-  return transform::string(buf);
+  return streamToString(buf);
 }
 
 template<typename CharT = char, typename Traits = std::char_traits<CharT>>

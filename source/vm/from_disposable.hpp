@@ -15,20 +15,22 @@ void dispose(T* impl) {
   impl->Dispose();
 }
 
-template<typename T>
-std::shared_ptr<T> shared_from_disposable(T* impl) {
-  return std::shared_ptr<T>(impl,
+template<typename Pointer, typename T>
+Pointer fromDisposable(T* impl) {
+  return Pointer(impl,
     [](T* p) {
       dispose(p);
     });
 }
 
 template<typename T>
-inline std::unique_ptr<T> unique_from_disposable(T* impl) {
-  return std::unique_ptr<T>(impl,
-    [](T* p) {
-      dispose(p);
-    });
+std::shared_ptr<T> sharedFromDisposable(T* impl) {
+  return fromDisposable<std::shared_ptr<T>, T>(impl);
+}
+
+template<typename T>
+inline std::unique_ptr<T> uniqueFromDisposable(T* impl) {
+  return fromDisposable<std::unique_ptr<T>, T>(impl);
 }
 
 } // namespace braid::vm

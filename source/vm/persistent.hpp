@@ -28,7 +28,7 @@ class persistent {
     }
 
     void dispose() {
-      if (static_cast<bool>(this)) {
+      if (!empty()) {
         handle.Dispose();
         handle.Clear();
       }

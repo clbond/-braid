@@ -34,20 +34,18 @@ int main(int argc, char** argv) {
     V8::InitializePlatform(v8::platform::CreateDefaultPlatform());
     V8::Initialize();
 
-    auto dispatcher = make_shared<braid::thread::dispatcher>();
+    auto dispatcher = make_shared<braid::thread::Dispatcher>();
 
     vector<shared_future<void>> futures;
 
     vector<shared_ptr<promise<void>>> promises;
 
     for (const boost::filesystem::path& path : options->entries()) {
-      const auto content = stream::file::read(path);
-
       auto promise = make_shared<std::promise<void>>();
 
       promises.push_back(promise);
 
-      futures.push_back(dispatcher->dispatch(promise, std::bind(vm::execute_in_isolation, content)));
+      futures.push_back(dispatcher->dispatch(promise, std::bind(vm::executeInIsolation, stream::file::read(path))));
     }
 
     dispatcher->start_workers(options->workers());

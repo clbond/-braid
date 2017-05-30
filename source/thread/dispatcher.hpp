@@ -12,55 +12,56 @@
 #include <boost/bind.hpp>
 #include <boost/asio/io_service.hpp>
 
+#include "promise.hpp"
+
 #include "task.hpp"
 
 namespace braid::thread {
-  class dispatcher {
+  class Dispatcher {
     public:
-      dispatcher()
-        : service_(new service())
+      Dispatcher()
+        : mService(new Service())
       {}
 
-      dispatcher(const dispatcher&) = delete;
+      Dispatcher(const Dispatcher&) = delete;
 
-      dispatcher(dispatcher&&) = delete;
+      Dispatcher(Dispatcher&&) = delete;
 
       std::vector<std::shared_ptr<std::thread>> start_workers(std::size_t workers) {
         while (workers-- > 0) {
-          threads_.push_back(std::shared_ptr<std::thread>(
-            new std::thread(boost::bind(&service::run, service_))));
+          mThreads.push_back(std::shared_ptr<std::thread>(new std::thread(boost::bind(&Service::run, mService))));
         }
-        return threads_;
+        return mThreads;
       }
 
       template<typename T, typename F>
-      std::shared_future<T> dispatch(std::shared_ptr<std::promise<T>> promise, F&& fn) {
-        service_->dispatch(task_with_promise<T>(*service_, promise, fn));
+      std::shared_future<T> dispatch(std::shared_ptr<std::promise<T>> promise, F fn) {
+        mService->dispatch(TaskWithPromise<T>(*mService, promise, fn));
 
         return promise->get_future();
       }
 
       void stop() {
-        service_->stop();
+        mService->stop();
       }
 
       void join() {
-        std::for_each(threads_.begin(), threads_.end(),
+        std::for_each(mThreads.begin(), mThreads.end(),
           [](std::shared_ptr<std::thread> thread) {
             thread->join();
           });
 
-        threads_.clear();
+        mThreads.clear();
       }
 
-      virtual ~dispatcher() {
+      virtual ~Dispatcher() {
         join();
       }
 
     private:
-      std::shared_ptr<service> service_;
+      std::shared_ptr<Service> mService;
 
-      std::vector<std::shared_ptr<std::thread>> threads_;
+      std::vector<std::shared_ptr<std::thread>> mThreads;
   };
 
 }
