@@ -137,8 +137,7 @@ project
 
 exe braid
     : #sources
-        [ glob $(TOP)/source/**/*.cc ]
-        [ glob $(TOP)/source/*.cc ]
+        [ glob-tree-ex $(TOP)/source : *.cc ]
         /boost/filesystem
         /boost/program_options
         /boost/system

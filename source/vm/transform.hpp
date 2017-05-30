@@ -23,15 +23,10 @@ inline v8::Local<v8::String> local(const std::basic_string<wchar_t, std::char_tr
   return v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), utf.c_str());
 }
 
-template<typename T>
-inline v8::Local<v8::Value> local(const T value); // cannot use, must use an explicit specialization
-
-template<>
 inline v8::Local<v8::Value> local(const bool boolean) {
   return v8::Boolean::New(v8::Isolate::GetCurrent(), boolean);
 }
 
-template<>
 inline v8::Local<v8::Value> local(const int number) {
   return v8::Number::New(v8::Isolate::GetCurrent(), number);
 }

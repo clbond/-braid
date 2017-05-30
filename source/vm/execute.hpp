@@ -5,8 +5,8 @@
 
 #include <v8.h>
 
-#include "from_disposable.hpp"
-
+#include "api.hpp"
+#include "from-disposable.hpp"
 #include "transform.hpp"
 
 namespace braid::vm {
@@ -28,6 +28,8 @@ static v8::Local<v8::Value> executeInIsolation(const std::string& js) {
   auto context = v8::Context::New(isolate);
 
   v8::Context::Scope contextScope(context);
+
+  api::ObjectTemplateFactory::create(isolate, context->Global());
 
   v8::TryCatch tryCatch;
 
