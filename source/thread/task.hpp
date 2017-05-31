@@ -1,7 +1,6 @@
 #pragma once
 
 #include <future>
-#include <iostream>
 #include <type_traits>
 
 #include <boost/asio/io_service.hpp>

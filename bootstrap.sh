@@ -6,11 +6,17 @@ then
   exit 1;
 fi;
 
-cd boost;
+pushd boost >/dev/null;
 
 ./bootstrap.sh \
   --with-toolset=clang
   --with-libraries=exception,system,iostreams,thread,date_time,program_options,filesystem \
 || die 'boost bootstrap failed';
 
-exec ./b2;
+./b2 || die 'boost build failed';
+
+popd >/dev/null;
+
+pushd v8 >/dev/null;
+
+exec make x64.debug;

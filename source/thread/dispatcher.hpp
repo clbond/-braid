@@ -17,51 +17,52 @@
 #include "task.hpp"
 
 namespace braid::thread {
-  class Dispatcher {
-    public:
-      Dispatcher()
-        : mService(new Service())
-      {}
 
-      Dispatcher(const Dispatcher&) = delete;
+class Dispatcher {
+  public:
+    Dispatcher()
+      : mService(new Service())
+    {}
 
-      Dispatcher(Dispatcher&&) = delete;
+    Dispatcher(const Dispatcher&) = delete;
 
-      std::vector<std::shared_ptr<std::thread>> start_workers(std::size_t workers) {
-        while (workers-- > 0) {
-          mThreads.push_back(std::shared_ptr<std::thread>(new std::thread(boost::bind(&Service::run, mService))));
-        }
-        return mThreads;
+    Dispatcher(Dispatcher&&) = delete;
+
+    std::vector<std::shared_ptr<std::thread>> start_workers(std::size_t workers) {
+      while (workers-- > 0) {
+        mThreads.push_back(std::shared_ptr<std::thread>(new std::thread(boost::bind(&Service::run, mService))));
       }
+      return mThreads;
+    }
 
-      template<typename T, typename F>
-      std::shared_future<T> dispatch(std::shared_ptr<std::promise<T>> promise, F fn) {
-        mService->dispatch(TaskWithPromise<T>(*mService, promise, fn));
+    template<typename T, typename F>
+    std::shared_future<T> dispatch(std::shared_ptr<std::promise<T>> promise, F fn) {
+      mService->dispatch(TaskWithPromise<T>(*mService, promise, fn));
 
-        return promise->get_future();
-      }
+      return promise->get_future();
+    }
 
-      void stop() {
-        mService->stop();
-      }
+    void stop() {
+      mService->stop();
+    }
 
-      void join() {
-        std::for_each(mThreads.begin(), mThreads.end(),
-          [](std::shared_ptr<std::thread> thread) {
-            thread->join();
-          });
+    void join() {
+      std::for_each(mThreads.begin(), mThreads.end(),
+        [](std::shared_ptr<std::thread> thread) {
+          thread->join();
+        });
 
-        mThreads.clear();
-      }
+      mThreads.clear();
+    }
 
-      virtual ~Dispatcher() {
-        join();
-      }
+    virtual ~Dispatcher() {
+      join();
+    }
 
-    private:
-      std::shared_ptr<Service> mService;
+  private:
+    std::shared_ptr<Service> mService;
 
-      std::vector<std::shared_ptr<std::thread>> mThreads;
-  };
+    std::vector<std::shared_ptr<std::thread>> mThreads;
+};
 
-}
+} // namespace braid::thread

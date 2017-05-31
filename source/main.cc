@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
   exception_ptr recorded_exception;
 
   try {
-    auto options = braid::parse_command_line_arguments(parser);
+    auto options = Options::parseCommandLine(parser);
 
     V8::InitializeICU();
     V8::SetFlagsFromCommandLine(&argc, argv, true);
@@ -45,12 +45,12 @@ int main(int argc, char** argv) {
 
       promises.push_back(promise);
 
-      futures.push_back(dispatcher->dispatch(promise, std::bind(vm::executeInIsolation, stream::file::read(path))));
+      futures.push_back(dispatcher->dispatch(promise, std::bind(vm::executeInIsolation, stream::read(path))));
     }
 
     dispatcher->start_workers(options->workers());
 
-    for_each(futures.begin(), futures.end(), bind(&shared_future<void>::get, placeholders::_1));
+    braid::thread::waitForFutures(futures.begin(), futures.end());
 
     dispatcher->stop();
     dispatcher->join();

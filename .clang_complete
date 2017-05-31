@@ -1,7 +1,8 @@
--Wno-pragma-once-outside-header
 -Iboost
 -Iv8/include
+-Iv8/src
 -Isource
 -I/usr/local/include
 -std=c++1z
 -Wno-c++1z-extensions
+-Wno-pragma-once-outside-header

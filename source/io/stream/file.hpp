@@ -13,7 +13,8 @@
 
 #include "transform.hpp"
 
-namespace braid::stream::file {
+namespace braid::stream {
+
 inline void conditional_failure(const boost::filesystem::path& path, const bool failed) {
   if (failed) {
     throw std::system_error(errno, std::system_category(), path.c_str());
@@ -58,4 +59,4 @@ inline void write(const boost::filesystem::path& path, const std::basic_string<c
   buf << string;
 }
 
-} // namespace braid::stream::file
+} // namespace braid::stream

@@ -19,17 +19,17 @@ static v8::Local<v8::Value> executeInIsolation(const std::string& js) {
   v8::Isolate::CreateParams params;
   params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
 
-  auto isolate = v8::Isolate::New(params);
+  std::shared_ptr<v8::Isolate> isolate = sharedFromDisposable(v8::Isolate::New(params));
 
-  v8::Isolate::Scope isolationScope(isolate);
+  v8::Isolate::Scope isolationScope(isolate.get());
 
-  v8::HandleScope scope(isolate);
+  v8::HandleScope scope(isolate.get());
 
-  auto context = v8::Context::New(isolate);
+  auto context = v8::Context::New(isolate.get());
 
   v8::Context::Scope contextScope(context);
 
-  api::ObjectTemplateFactory::create(isolate, context->Global());
+  api::ObjectTemplateFactory::create(isolate.get(), context->Global());
 
   v8::TryCatch tryCatch;
 

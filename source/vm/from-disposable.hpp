@@ -2,24 +2,14 @@
 
 #include <functional>
 #include <memory>
-#include <type_traits>
-
-#include <boost/bind.hpp>
-
-#include <boost/utility/enable_if.hpp>
 
 namespace braid::vm {
-
-template<typename T>
-void dispose(T* impl) {
-  impl->Dispose();
-}
 
 template<typename Pointer, typename T>
 Pointer fromDisposable(T* impl) {
   return Pointer(impl,
     [](T* p) {
-      dispose(p);
+      p->Dispose();
     });
 }
 
