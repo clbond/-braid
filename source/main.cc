@@ -45,7 +45,12 @@ int main(int argc, char** argv) {
 
       promises.push_back(promise);
 
-      futures.push_back(dispatcher->dispatch(promise, std::bind(vm::executeInIsolation, stream::read(path))));
+      futures.push_back(dispatcher->dispatch(promise,
+        [=]() mutable {
+          auto environment = make_shared<vm::ScriptRunner>();
+
+          return environment->execute(path.c_str(), stream::read(path));
+        }));
     }
 
     dispatcher->start_workers(options->workers());

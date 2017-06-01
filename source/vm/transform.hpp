@@ -31,7 +31,7 @@ inline v8::Local<v8::Value> local(const int number) {
   return v8::Number::New(v8::Isolate::GetCurrent(), number);
 }
 
-inline std::string toString(v8::Local<v8::Value> local) {
+inline const std::string toString(v8::Local<v8::Value> local) {
   return v8::String::Utf8Value(local).operator*();
 }
 

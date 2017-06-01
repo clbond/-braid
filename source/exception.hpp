@@ -1,17 +1,37 @@
 #include <stdexcept>
+#include <sstream>
 
 namespace braid::exceptions {
-  class command_line_error : public std::runtime_error {
+  class Exception : public std::runtime_error {
     public:
-      command_line_error(const std::string& msg)
-        : runtime_error(msg)
+      template<typename CharT = char, typename Traits = std::char_traits<CharT>>
+      Exception(const std::basic_string<CharT, Traits>& msg)
+        : std::runtime_error(msg)
+      {}
+
+      Exception(const char* msg)
+        : std::runtime_error(std::string(msg))
       {}
   };
 
-  class not_implemented : public std::runtime_error {
+  class ScriptException : public Exception {
     public:
-      not_implemented()
-        : runtime_error("Not implemented")
+      ScriptException(const std::string& msg)
+        : Exception(msg)
+      {}
+  };
+
+  class CommandLineException : public Exception {
+    public:
+      CommandLineException(const std::string& msg)
+        : Exception(msg)
+      {}
+  };
+
+  class NotImplementedException : public Exception {
+    public:
+      NotImplementedException()
+        : Exception("Not implemented")
       {}
   };
 }

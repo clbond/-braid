@@ -21,15 +21,22 @@ static inline const std::string joinArgs(const FunctionCallbackInfo<Value>& args
   return boost::algorithm::join(v, " ");
 }
 
-Handle<Object> Console::create(IsolatePtr isolate) {
-  Handle<Object> object = Object::New(isolate);
+Local<ObjectTemplate> Console::create(IsolatePtr isolate) {
+  EscapableHandleScope scope(isolate);
 
-  auto fn = FunctionTemplate::New(isolate,
-    [](const FunctionCallbackInfo<Value>& args) {
-      cout << joinArgs(args) << endl;
-    });
+  Local<ObjectTemplate> object = ObjectTemplate::New(isolate);
 
-  object->Set(String::NewFromUtf8(isolate, "log"), fn->GetFunction());
+  object->Set(String::NewFromUtf8(isolate, "log"),
+    FunctionTemplate::New(isolate,
+      [](const FunctionCallbackInfo<Value>& args) {
+        cout << joinArgs(args) << endl;
+      }));
 
-  return object;
+  object->Set(String::NewFromUtf8(isolate, "error"),
+    FunctionTemplate::New(isolate,
+      [](const FunctionCallbackInfo<Value>& args) {
+        cerr << joinArgs(args) << endl;
+      }));
+
+   return scope.Escape(object);
 }

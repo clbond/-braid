@@ -8,7 +8,7 @@ namespace braid::vm::api {
 
 class Console {
   public:
-    static v8::Handle<v8::Object> create(IsolatePtr);
+    static v8::Local<v8::ObjectTemplate> create(IsolatePtr);
 };
 
 } // namespace braid::vm::api

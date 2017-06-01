@@ -9,24 +9,26 @@
 #include <boost/program_options.hpp>
 
 namespace braid {
-  class Options {
-    public:
-      static std::shared_ptr<const Options> parseCommandLine(boost::program_options::command_line_parser& parser);
 
-      const std::vector<boost::filesystem::path>& entries() const;
+class Options {
+  public:
+    static std::shared_ptr<const Options> parseCommandLine(boost::program_options::command_line_parser& parser);
 
-      std::vector<boost::filesystem::path>& entries();
+    const std::vector<boost::filesystem::path>& entries() const;
 
-      const std::size_t workers() const;
+    std::vector<boost::filesystem::path>& entries();
 
-      const bool debug() const;
+    const std::size_t workers() const;
 
-    protected:
-      Options(const std::vector<boost::filesystem::path>& entries, const std::size_t workers, const bool debug);
+    const bool debug() const;
 
-    private:
-      std::vector<boost::filesystem::path> mEntries;
-      std::size_t mWorkers;
-      bool mDebug;
-  };
-}
+  protected:
+    Options(const std::vector<boost::filesystem::path>& entries, const std::size_t workers, const bool debug);
+
+  private:
+    std::vector<boost::filesystem::path> mEntries;
+    std::size_t mWorkers;
+    bool mDebug;
+};
+
+} // namespace braid

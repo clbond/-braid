@@ -38,14 +38,14 @@ shared_ptr<const Options> Options::parseCommandLine(command_line_parser& parser)
   if (vm.count("help")) {
     stringstream ss;
     ss << desc;
-    throw exceptions::command_line_error(ss.str());
+    throw exceptions::CommandLineException(ss.str());
   }
 
   if (vm.count("source-file") == 0) {
-    throw exceptions::command_line_error("No source files were specified");
+    throw exceptions::CommandLineException("No source files were specified");
   }
 
-  const auto sources = algorithms::map<boost::filesystem::path>(vm["source-file"].as<vector<string>>());
+  const auto sources = algorithms::mapContainer<boost::filesystem::path>(vm["source-file"].as<vector<string>>());
 
   return shared_ptr<const Options>(new Options(sources, vm["workers"].as<size_t>(), vm.count("debug") > 0));
 }

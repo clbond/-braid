@@ -1,5 +1,7 @@
 bin
 
+bootstrap.log
+
 boost/bin.*
 boost/stage
 boost/project-config.jam.*

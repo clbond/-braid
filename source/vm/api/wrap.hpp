@@ -14,7 +14,7 @@ v8::Handle<v8::Object> wrapObject(IsolatePtr isolate, v8::Handle<v8::Object> tar
 
   target->SetInternalField(0, v8::External::New(instance));
 
-	return target;
+  return target;
 }
 
 } // namespace braid::vm::api
