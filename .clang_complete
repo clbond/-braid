@@ -1,7 +1,7 @@
--Iboost
--Iv8/include
--Iv8/src
--Isource
+-I${workspaceRoot}/boost
+-I${workspaceRoot}/v8/v8/include
+-I${workspaceRoot}/v8/v8/src
+-I${workspaceRoot}/source
 -I/usr/local/include
 -std=c++1z
 -Wno-c++1z-extensions

@@ -17,6 +17,10 @@ pushd boost >/dev/null;
 
 popd >/dev/null;
 
-pushd v8 >/dev/null;
+pushd v8/v8 >/dev/null;
 
-exec make x64.debug;
+../depot_tools/gn gen out || die 'Failed to generate V8 build scripts';
+
+make x64.debug || die 'V8 build failed';
+
+exit $?;

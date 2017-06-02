@@ -25,9 +25,9 @@ void ScriptRunner::execute(const std::string& identifier, const std::string& sou
 
   auto script = v8::Script::Compile(context, local(source));
 
-  throwIfCaught(tryCatch, "Compile: " + identifier);
+  conditionalThrowNative(tryCatch, "Compile: " + identifier);
 
   script.ToLocalChecked()->Run();
 
-  throwIfCaught(tryCatch, identifier);
+  conditionalThrowNative(tryCatch, identifier);
 }

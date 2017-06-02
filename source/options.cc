@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <functional>
 #include <sstream>
+#include <thread>
 #include <vector>
 
 #include <boost/program_options.hpp>
@@ -14,24 +15,39 @@ using namespace braid;
 using namespace std;
 using namespace boost::program_options;
 
+template<typename T>
+inline T argumentValue(const variables_map& vm, const string& argument) {
+  return vm[argument].as<T>();
+}
+
+template<>
+inline bool argumentValue(const variables_map& vm, const string& argument) {
+  return vm.count(argument) > 0;
+}
+
 shared_ptr<const Options> Options::parseCommandLine(command_line_parser& parser) {
   options_description desc("Options");
 
   desc.add_options()
       ("help", "produce description of available options")
-      ("source-file", value<vector<string>>(), "JavaScript source files")
-      ("debug", value<bool>()->default_value(false), "enable application debugging")
-      ("workers", value<size_t>()->default_value(8), "number of thread pool workers to create")
-      ;
+      ("source-file",
+       value<vector<string>>(),
+       "JavaScript source files")
+      ("debug",
+       value<bool>()->default_value(true),
+       "Enable application debugging")
+      ("workers",
+       value<size_t>()->default_value(std::thread::hardware_concurrency()),
+       "Number of thread pool workers to create");
 
   positional_options_description positional;
+
+  // All arguments that are not in the options table are interpreted as source files
   positional.add("source-file", -1);
 
   variables_map vm;
 
-  auto parsed = parser.options(desc).positional(positional).run();
-
-  store(parsed, vm);
+  store(parser.options(desc).positional(positional).run(), vm);
 
   notify(vm);
 

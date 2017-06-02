@@ -60,8 +60,13 @@ int main(int argc, char** argv) {
     dispatcher->stop();
     dispatcher->join();
   }
-  catch (const exception& e) {
-    recorded_exception = current_exception();
+  catch (...) {
+    try {
+      throw_with_nested(runtime_error("Uncaught exception"));
+    }
+    catch (const exception&) {
+      recorded_exception = current_exception();
+    }
   }
 
   V8::Dispose();
@@ -72,10 +77,9 @@ int main(int argc, char** argv) {
     }
     catch (const exception& e) {
       cerr << e.what() << endl;
-
-      return 1; // failure due to uncaught exception
     }
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

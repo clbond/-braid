@@ -72,9 +72,11 @@ braid_requirements =
     # Include directories
     <include>$(boost-path)
     <include>.
-    <include>v8/include
+    <include>v8/v8/include
+    <include>v8/v8/src
+    <include>v8/v8
 
-    <library-path>v8/out/x64.debug
+    <library-path>v8/v8/out/x64.debug
 
     # Linker specializations
     <link>static,<threading>multi:<define>BOOST_THREAD_USE_LIB
@@ -136,29 +138,27 @@ project
     ;
 
 exe braid
-    : #sources
-        [ glob-tree-ex $(TOP)/source : *.cc ]
-        /boost/filesystem
-        /boost/program_options
-        /boost/system
-        /boost/thread//boost_thread
-        v8
-        v8_base
-        v8_libplatform
-        v8_libsampler
-        v8_external_snapshot
-        icuuc
-        icui18n
-    : #requirements
-    : #defaults
-    : #usage requirements
-        $(braid_requirements)
+    : [ glob-tree-ex $(TOP)/source : *.cc ]
+      /boost/filesystem
+      /boost/program_options
+      /boost/system
+      /boost/thread//boost_thread
+      v8
+      v8_base
+      v8_libplatform
+      v8_libsampler
+      v8_external_snapshot
+      icuuc
+      icui18n
+    :
+    :
+    : $(braid_requirements)
     ;
 
-lib v8 : : <file>v8/out/x64.debug/libv8_base.a <link>static ;
-lib v8_base : : <file>v8/out/x64.debug/libv8_libbase.a <link>static ;
-lib v8_libplatform : : <file>v8/out/x64.debug/libv8_libplatform.a <link>static ;
-lib v8_libsampler : : <file>v8/out/x64.debug/libv8_libsampler.a <link>static ;
-lib v8_external_snapshot : : <file>v8/out/x64.debug/libv8_external_snapshot.a <link>static ;
-lib icuuc : : <file>v8/out/x64.debug/libicuuc.a <link>static ;
-lib icui18n : : <file>v8/out/x64.debug/libicui18n.a <link>static ;
+lib v8 : : <file>v8/v8/out/x64.debug/libv8_base.a <link>static ;
+lib v8_base : : <file>v8/v8/out/x64.debug/libv8_libbase.a <link>static ;
+lib v8_libplatform : : <file>v8/v8/out/x64.debug/libv8_libplatform.a <link>static ;
+lib v8_libsampler : : <file>v8/v8/out/x64.debug/libv8_libsampler.a <link>static ;
+lib v8_external_snapshot : : <file>v8/v8/out/x64.debug/libv8_external_snapshot.a <link>static ;
+lib icuuc : : <file>v8/v8/out/x64.debug/libicuuc.a <link>static ;
+lib icui18n : : <file>v8/v8/out/x64.debug/libicui18n.a <link>static ;

@@ -27,7 +27,9 @@ class Options {
 
   private:
     std::vector<boost::filesystem::path> mEntries;
+
     std::size_t mWorkers;
+
     bool mDebug;
 };
 

@@ -1,5 +1,5 @@
 #pragma once
 
-#include "api/console.hpp"
+#include "api/console-delegate.hpp"
 #include "api/persistent-context-factory.hpp"
 #include "api/wrap.hpp"

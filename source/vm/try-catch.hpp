@@ -10,11 +10,7 @@
 namespace braid::vm {
 
 template<typename CharT = char, typename Traits = std::char_traits<CharT>>
-static inline void throwIfCaught(v8::TryCatch& catcher, const std::basic_string<CharT, Traits>& msg = std::basic_string<CharT, Traits>()) {
-  if (catcher.HasCaught() == false) {
-    return;
-  }
-
+static inline std::basic_string<CharT, Traits> exceptionToMessage(v8::TryCatch& catcher, const std::basic_string<CharT, Traits>& msg) {
   std::basic_stringstream<CharT, Traits> ss(msg);
 
   const std::string delimiter(": ");
@@ -31,10 +27,26 @@ static inline void throwIfCaught(v8::TryCatch& catcher, const std::basic_string<
   }
 
   ss << toString(catcher.Message()->Get())
-    << std::endl
-    << toString(catcher.StackTrace(v8::Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked());
+     << std::endl
+     << toString(catcher.StackTrace(v8::Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked());
 
-  throw std::runtime_error(ss.str());
+  return ss.str();
+}
+
+template<typename CharT = char, typename Traits = std::char_traits<CharT>>
+static inline void conditionalThrowNative(v8::TryCatch& catcher, const std::basic_string<CharT, Traits>& msg = std::basic_string<CharT, Traits>()) {
+  if (catcher.HasCaught()) {
+    throw std::runtime_error(exceptionToMessage(catcher, msg));
+  }
+}
+
+template<typename CharT = char, typename Traits = std::char_traits<CharT>>
+static inline bool conditionalThrowToVm(v8::TryCatch& catcher, const std::basic_string<CharT, Traits>& msg = std::basic_string<CharT, Traits>()) {
+  if (catcher.HasCaught()) {
+    v8::Isolate::GetCurrent()->ThrowException(local(exceptionToMessage(catcher, msg)));
+    return true;
+  }
+  return false;
 }
 
 } // namespace braid::vm

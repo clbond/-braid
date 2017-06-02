@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "console.hpp"
+#include "console-delegate.hpp"
 #include "persistent-context-factory.hpp"
 
 using namespace braid;
@@ -16,9 +16,11 @@ Local<ObjectTemplate> PersistentContextFactory::create(shared_ptr<Isolate> isola
 
   v8::Context::Scope contextScope(context);
 
+  debug::SetConsoleDelegate(isolate.get(), new ConsoleDelegate(isolate));
+
   auto objtemplate = ObjectTemplate::New(isolate.get());
 
-  objtemplate->Set(String::NewFromUtf8(isolate.get(), "console"), Console::create(isolate.get()));
+  objtemplate->SetImmutableProto();
 
   return handleScope.Escape(objtemplate);
 }
